@@ -3,6 +3,7 @@ import 'screens/payment_screen.dart';
 import 'screens/get_reservation_screen.dart';
 import 'services/tamara_service.dart';
 import 'models/tamara_payment_response.dart';
+import 'utils/debug_helper.dart';
 
 void main() {
   runApp(const MyApp());
@@ -137,26 +138,59 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _handlePaymentResult(PaymentResult result, String? orderId) {
+    DebugHelper.log('=== _handlePaymentResult CALLED ===');
+    DebugHelper.log('Result: $result');
+    DebugHelper.log('Order ID: $orderId');
+    DebugHelper.log('Reservation GUID: ${_reservationController.text}');
+
     String message;
     Color color;
 
     switch (result) {
       case PaymentResult.success:
+        DebugHelper.log('Processing SUCCESS result...');
         message = 'تم الدفع بنجاح! ✅';
         if (orderId != null) {
           message += '\nرقم الطلب: $orderId';
         }
         color = Colors.green;
 
-        // Navigate to reservation details screen
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => GetReservationScreen(
-              reservationGuid: _reservationController.text,
-              orderId: orderId,
+        DebugHelper.log('About to navigate to GetReservationScreen...');
+        DebugHelper.log('Context mounted: ${mounted}');
+
+        // Check if widget is still mounted
+        if (!mounted) {
+          DebugHelper.log('Widget not mounted, cannot navigate');
+          return;
+        }
+
+        // Use a post-frame callback to ensure we're in the right state
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          DebugHelper.log('Post-frame callback executing...');
+
+          if (!mounted) {
+            DebugHelper.log('Widget not mounted in post-frame callback');
+            return;
+          }
+
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) {
+                DebugHelper.log('Building GetReservationScreen...');
+                return GetReservationScreen(
+                  reservationGuid: _reservationController.text,
+                  orderId: orderId,
+                );
+              },
             ),
-          ),
-        );
+          ).then((_) {
+            DebugHelper.log('Navigation completed successfully');
+          }).catchError((error) {
+            DebugHelper.log('Navigation failed with error: $error');
+          });
+        });
+
+        DebugHelper.log('Post-frame callback scheduled');
         break;
       case PaymentResult.failure:
         message = 'فشل في عملية الدفع ❌';
@@ -227,6 +261,8 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             const SizedBox(height: 32),
+
+
 
             ElevatedButton(
               onPressed: _isLoading ? null : _startPayment,

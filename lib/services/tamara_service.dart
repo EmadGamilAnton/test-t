@@ -59,16 +59,27 @@ class TamaraService {
 
   /// Validates payment callback URL
   static bool isPaymentCallback(String url) {
-    // Check for Tamara callback URL pattern
-    return url.contains('takeed.sa/tamara/') && url.contains('paymentStatus=');
+    // Check for multiple possible callback URL patterns
+    return (url.contains('takeed.sa/tamara/') && url.contains('paymentStatus=')) ||
+           (url.contains('paymentStatus=')) ||
+           (url.contains('payment-success')) ||
+           (url.contains('payment-failure')) ||
+           (url.contains('payment-cancel')) ||
+           (url.contains('success=true')) ||
+           (url.contains('success=false')) ||
+           (url.contains('status=approved')) ||
+           (url.contains('status=declined'));
   }
 
   /// Extracts payment result from callback URL
   static PaymentResult getPaymentResult(String url) {
-    // Parse the URL to get paymentStatus parameter
+    // Parse the URL to get various possible parameters
     final uri = Uri.parse(url);
     final paymentStatus = uri.queryParameters['paymentStatus'];
+    final status = uri.queryParameters['status'];
+    final success = uri.queryParameters['success'];
 
+    // Check paymentStatus parameter first
     switch (paymentStatus) {
       case 'approved':
         return PaymentResult.success;
@@ -78,15 +89,49 @@ class TamaraService {
       case 'cancelled':
       case 'canceled':
         return PaymentResult.cancelled;
-      default:
-        return PaymentResult.unknown;
     }
+
+    // Check status parameter
+    switch (status) {
+      case 'approved':
+      case 'success':
+        return PaymentResult.success;
+      case 'declined':
+      case 'failed':
+      case 'failure':
+        return PaymentResult.failure;
+      case 'cancelled':
+      case 'canceled':
+        return PaymentResult.cancelled;
+    }
+
+    // Check success parameter
+    if (success == 'true') {
+      return PaymentResult.success;
+    } else if (success == 'false') {
+      return PaymentResult.failure;
+    }
+
+    // Check URL patterns
+    if (url.contains('payment-success') || url.contains('success')) {
+      return PaymentResult.success;
+    } else if (url.contains('payment-failure') || url.contains('failed')) {
+      return PaymentResult.failure;
+    } else if (url.contains('payment-cancel') || url.contains('cancel')) {
+      return PaymentResult.cancelled;
+    }
+
+    return PaymentResult.unknown;
   }
 
   /// Extracts order ID from callback URL
   static String? getOrderId(String url) {
     final uri = Uri.parse(url);
-    return uri.queryParameters['orderId'];
+    // Try different possible parameter names
+    return uri.queryParameters['orderId'] ??
+           uri.queryParameters['order_id'] ??
+           uri.queryParameters['orderID'] ??
+           uri.queryParameters['id'];
   }
 }
 

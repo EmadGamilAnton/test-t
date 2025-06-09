@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/flight_service.dart';
 import '../models/flight_order_response.dart';
+import '../utils/debug_helper.dart';
 
 class GetReservationScreen extends StatefulWidget {
   final String reservationGuid;
@@ -24,6 +25,9 @@ class _GetReservationScreenState extends State<GetReservationScreen> {
   @override
   void initState() {
     super.initState();
+    DebugHelper.log('GetReservationScreen initState called');
+    DebugHelper.log('Reservation GUID: ${widget.reservationGuid}');
+    DebugHelper.log('Order ID: ${widget.orderId}');
     _loadReservationDetails();
   }
 
