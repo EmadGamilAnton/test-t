@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/payment_screen.dart';
+import 'screens/get_reservation_screen.dart';
 import 'services/tamara_service.dart';
 import 'models/tamara_payment_response.dart';
 
@@ -146,6 +147,16 @@ class _MyHomePageState extends State<MyHomePage> {
           message += '\nرقم الطلب: $orderId';
         }
         color = Colors.green;
+
+        // Navigate to reservation details screen
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => GetReservationScreen(
+              reservationGuid: _reservationController.text,
+              orderId: orderId,
+            ),
+          ),
+        );
         break;
       case PaymentResult.failure:
         message = 'فشل في عملية الدفع ❌';
@@ -166,13 +177,16 @@ class _MyHomePageState extends State<MyHomePage> {
       _lastOrderId = orderId;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: color,
-        duration: const Duration(seconds: 4),
-      ),
-    );
+    // Only show snackbar for non-success results
+    if (result != PaymentResult.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: color,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
   }
 
   @override

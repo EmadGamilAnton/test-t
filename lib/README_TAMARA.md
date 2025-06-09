@@ -7,6 +7,7 @@
 - إرسال طلب دفع إلى API تمارا
 - عرض صفحة الدفع في WebView
 - معالجة نتائج الدفع (نجاح/فشل/إلغاء)
+- عرض تفاصيل الحجز بعد نجاح الدفع
 - واجهة مستخدم باللغة العربية
 
 ## كيفية الاستخدام
@@ -23,6 +24,11 @@
 ### 3. إكمال الدفع
 - أكمل عملية الدفع في صفحة تمارا
 - سيتم إرجاعك تلقائياً للتطبيق مع النتيجة
+
+### 4. عرض تفاصيل الحجز (عند نجاح الدفع)
+- سيتم الانتقال تلقائياً لصفحة تفاصيل الحجز
+- عرض معلومات الرحلة والمسافر
+- إمكانية العودة للصفحة الرئيسية
 
 ## تفاصيل تقنية
 
@@ -50,9 +56,23 @@ POST https://takeed.runasp.net/api/v1/tamara/create-session
 }
 ```
 
+### API Endpoints
+
+#### 1. إنشاء جلسة الدفع
+```
+POST https://takeed.runasp.net/api/v1/tamara/create-session
+```
+
+#### 2. الحصول على تفاصيل الحجز
+```
+GET https://takeed.runasp.net/api/v1/reservation/get-by-id?ReservationGUID=bf44a8641bf8400ea7683a411a995c13
+```
+
 ### الملفات المهمة
-- `lib/services/tamara_service.dart` - خدمة API
+- `lib/services/tamara_service.dart` - خدمة API تمارا
+- `lib/services/flight_service.dart` - خدمة API الحجوزات
 - `lib/screens/payment_screen.dart` - صفحة الدفع
+- `lib/screens/get_reservation_screen.dart` - صفحة تفاصيل الحجز
 - `lib/models/` - نماذج البيانات
 
 ### Callback URL Pattern
